@@ -1,0 +1,4 @@
+file:
+  - mocha.js
+recursive: true
+timeout: 3000
