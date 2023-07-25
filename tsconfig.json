@@ -9,7 +9,6 @@
       "skipLibCheck": true,
       "resolveJsonModule": true,
       "outDir": "build",
-      "rootDir": "src",
       "noImplicitAny": true,
       "sourceMap": true,
       "useUnknownInCatchVariables": false
@@ -17,6 +16,6 @@
       "exclude": [
         "node_modules"
       ],
-      "include": ["src/**/*", "./scripts"],
+      "include": ["src/**/*", "./scripts/**/*", "./test", "./typechain-types"],
       "files": ["./hardhat.config.ts"]
 }

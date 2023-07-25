@@ -1,8 +1,16 @@
 import { isValidPrivate } from 'ethereumjs-util';
 
 export function checkPrivateKey(privateKey: string): boolean {
-  // Make sure the private key is a Buffer
-  const privateKeyBuffer = Buffer.from(privateKey, 'hex');
+  try {
+    if (privateKey.startsWith('0x')) {
+      privateKey = privateKey.slice(2);
+    }
 
-  return isValidPrivate(privateKeyBuffer);
+    // Convert to Buffer
+    const privateKeyBuffer: Buffer = Buffer.from(privateKey, 'hex');
+
+    return isValidPrivate(privateKeyBuffer);
+  } catch (error) {
+    return false;
+  }
 }

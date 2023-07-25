@@ -2,22 +2,27 @@
   "name": "test-task",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
+  "private": true,
   "scripts": {
-    "test": "mocha -r ts-node/register 'test/**/*.spec.ts'",
-    "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js",
+    "start": "ts-node src/index.ts",
+    "node": "hardhat node",
+    "test": "npm run test:unit && npm run test:integration && npm run test:contract",
+    "test:unit": "mocha -r ts-node/register 'test/unit/**/*.spec.ts'",
+    "test:integration": "mocha -r ts-node/register 'test/integration/**/*.spec.ts' --exit",
+    "test:contract": "mocha -r ts-node/register 'test/integration/**/*.spec.ts' --exit",
     "contract:compile": "hardhat compile",
     "contract:deploy": "hardhat run ./scripts/deploy.ts",
-    "newtwork:start": "hardhat node"
+    "newtwork:start": "hardhat node",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prettify": "prettier --write ./src/**/*.ts ./test/**/*.ts"
   },
   "author": "Konstantin Shuplenkov",
   "repository": {
     "type": "git",
     "url": "https://github.com/shuplenkov/test-task.git"
   },
-  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
     "ethereumjs-util": "^7.1.5",
@@ -38,7 +43,6 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^5.0.0",
     "hardhat": "^2.17.0",
-    "hardhat-jest": "^1.0.8",
     "mocha": "^10.2.0",
     "prettier": "^3.0.0",
     "sinon": "^15.2.0",

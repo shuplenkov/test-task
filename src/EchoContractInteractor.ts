@@ -35,11 +35,12 @@ export class EchoContractInteractor {
     }
   }
 
+  // Perform a transaction on the contract
   async emitEvent(): Promise<TransactionReceipt> {
     try {
-      const transaction = this.contract.methods.getCurrentBlockNumber().encodeABI();
+      const transaction = this.contract.methods.emitEvent().encodeABI();
       const gasPrice = await this.web3.eth.getGasPrice();
-      const gas = await this.contract.methods.getCurrentBlockNumber().estimateGas({ from: this.account });
+      const gas = await this.contract.methods.emitEvent().estimateGas({ from: this.account });
 
       const tx: Transaction = {
         from: this.account,
@@ -59,10 +60,10 @@ export class EchoContractInteractor {
     }
   }
 
-  // Listen to a specific event on the contract
+  // Listen to EmitRequested event on the contract
   listenToContractEvent(onDataCallback: DataCallback, onErrorCallback: ErrorCallback): void {
     try {
-      this.eventSubscription = this.contract.events.BlockNumberRequested();
+      this.eventSubscription = this.contract.events.EmitRequested();
       this.eventSubscription.on('data', onDataCallback);
       this.eventSubscription.on('error', onErrorCallback);
     } catch (error) {

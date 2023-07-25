@@ -1,11 +1,10 @@
+import { EchoContractInteractor } from '../../src/EchoContractInteractor';
 import CallError from '../../src/errors/CallError';
 import EventListeningError from '../../src/errors/EventListeningError';
 import TransactionError from '../../src/errors/TransactionError';
-import { EchoContractInteractor } from './../../src/EchoContractInteractor';
 import Web3, { ContractAbi } from 'web3';
-import chai, { expect } from "chai";
-import sinon from "sinon";
-chai.use(require('sinon-chai'));
+import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 describe('EchoContractInteractor', () => {
   let echoContractInteractor: EchoContractInteractor;
@@ -21,11 +20,7 @@ describe('EchoContractInteractor', () => {
   let getGasPriceStub: sinon.SinonStub;
   let sendSignedTransactionStub: sinon.SinonStub;
   let signTransactionStub: sinon.SinonStub;
-  let blockNumberRequestedStub: sinon.SinonStub;
-
-  before(() => {
-
-  });
+  let emitRequestedStub: Record<string, sinon.SinonStub>;
 
   beforeEach(async () => {
     unsubscribeStub = sinon.stub();
@@ -35,7 +30,7 @@ describe('EchoContractInteractor', () => {
     getGasPriceStub = sinon.stub().resolves('1000000000');
     sendSignedTransactionStub = sinon.stub().resolves({ blockNumber: 10 });
     signTransactionStub = sinon.stub().resolves({ rawTransaction: '000' });
-    blockNumberRequestedStub = {
+    emitRequestedStub = {
       on: sinon.stub(),
       unsubscribe: unsubscribeStub,
     };
@@ -49,12 +44,14 @@ describe('EchoContractInteractor', () => {
           methods: {
             getCurrentBlockNumber: () => ({
               call: getCurrentBlockNumberStub,
+            }),
+            emitEvent: () => ({
               encodeABI: encodeABIStub,
               estimateGas: estimateGasStub,
             }),
           },
           events: {
-            BlockNumberRequested: () => (blockNumberRequestedStub),
+            EmitRequested: () => emitRequestedStub,
           },
         }),
         accounts: {
@@ -92,10 +89,6 @@ describe('EchoContractInteractor', () => {
     echoContractInteractor = new EchoContractInteractor(mockWeb3, mockAbi, mockContractAddress, mockPrivateKey);
   });
 
-  // after(() => {
-  //   web3Stub.restore();
-  // });
-
   it('should create an instance of EchoContractInteractor', () => {
     expect(echoContractInteractor).to.be.an.instanceof(EchoContractInteractor);
   });
@@ -132,16 +125,18 @@ describe('EchoContractInteractor', () => {
       expect(encodeABIStub).to.have.been.calledOnce;
       expect(estimateGasStub).to.have.been.calledOnceWithExactly({ from: '0x456' });
       expect(getGasPriceStub).to.have.been.calledOnce;
-      expect(signTransactionStub).to.have.been.calledOnceWithExactly({
-        from: '0x456',
-        to: '0x123',
-        gasPrice: '1000000000',
-        gas: 21000,
-        data: '0xabc',
-      }, '0xabc');
+      expect(signTransactionStub).to.have.been.calledOnceWithExactly(
+        {
+          from: '0x456',
+          to: '0x123',
+          gasPrice: '1000000000',
+          gas: 21000,
+          data: '0xabc',
+        },
+        '0xabc',
+      );
       expect(sendSignedTransactionStub).to.have.been.calledOnceWithExactly('000');
     });
-
 
     it('should throw TransactionError', async () => {
       signTransactionStub.rejects(new Error('Transaction error'));
@@ -165,16 +160,16 @@ describe('EchoContractInteractor', () => {
 
       echoContractInteractor.listenToContractEvent(mockDataCallback, mockErrorCallback);
 
-      expect(blockNumberRequestedStub.on).to.have.been.calledTwice;
-      expect(blockNumberRequestedStub.on.getCall(0).args).to.be.deep.equal(['data', mockDataCallback]);
-      expect(blockNumberRequestedStub.on.getCall(1).args).to.be.deep.equal(['error', mockErrorCallback]);
+      expect(emitRequestedStub.on).to.have.been.calledTwice;
+      expect(emitRequestedStub.on.getCall(0).args).to.be.deep.equal(['data', mockDataCallback]);
+      expect(emitRequestedStub.on.getCall(1).args).to.be.deep.equal(['error', mockErrorCallback]);
     });
 
     it('should throw EventListeningError', async () => {
       const mockDataCallback = sinon.stub();
       const mockErrorCallback = sinon.stub();
 
-      blockNumberRequestedStub.on.throws(new Error('Event listening error'));
+      emitRequestedStub.on.throws(new Error('Event listening error'));
 
       try {
         echoContractInteractor.listenToContractEvent(mockDataCallback, mockErrorCallback);
@@ -201,8 +196,6 @@ describe('EchoContractInteractor', () => {
 
     it('should not stop listening to BlockNumberRequested event if not subscribed', async () => {
       await echoContractInteractor.stopListeningToContractEvent();
-
-      const contract = new mockWeb3.eth.Contract(mockAbi, mockContractAddress);
 
       expect(unsubscribeStub).to.have.not.been.called;
     });

@@ -1,10 +1,14 @@
 import * as util from 'util';
 import winston from 'winston';
 
-const myFormat = winston.format.printf((info) => {
-  let output = `${info.level}: ${util.inspect(info.message)}`;
+// Create custom formatter to correctly log metadata (e.g. in case it contains BigInt)
+const metaFormat = winston.format.printf((info) => {
+  let output = `${info.level}: ${
+    Object.prototype.toString.call(info.message) === '[object String]' ? info.message : util.inspect(info.message)
+  }`;
+
   if (info[Symbol.for('splat')]) {
-    const metadata = info[Symbol.for('splat')]; // assuming metadata is the first splat argument
+    const metadata = info[Symbol.for('splat')];
     const metaStr = util.inspect(metadata, {
       depth: null,
       showHidden: false,
@@ -18,7 +22,7 @@ const myFormat = winston.format.printf((info) => {
 });
 
 export const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
-  format: winston.format.combine(winston.format.colorize(), winston.format.splat(), myFormat),
+  level: process.env.NODE_ENV === 'test' ? 'silent' : 'info', // don't log anything during tests
+  format: winston.format.combine(winston.format.colorize(), winston.format.splat(), metaFormat),
   transports: [new winston.transports.Console()],
 });

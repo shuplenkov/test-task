@@ -1,7 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import { config as dotEnvConfig } from 'dotenv';
-import 'hardhat-jest';
 import ensure0xPrefix from './src/utils/ensure0xPrefix';
 
 dotEnvConfig();

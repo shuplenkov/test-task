@@ -9,7 +9,6 @@ import { checkPrivateKey } from './utils/checkPrivateKey';
 dotenv.config();
 
 // Get environment variables
-
 const INFURA_API_KEY = process.env.INFURA_API_KEY ?? '';
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS ?? '';
 const NETWORK = process.env.NETWORK ?? '';
@@ -19,14 +18,14 @@ if (!INFURA_API_KEY || !CONTRACT_ADDRESS || !NETWORK || !PRIVATE_KEY) {
   throw new Error('Please ensure all environment variables are set');
 }
 
-// const web3 = new Web3('wss://eth-sepolia.g.alchemy.com/v2/pxyTgklgeXqaQ0y1YJfHUZFaAanW3X28');
 async function main() {
   logger.info('Starting...');
 
   const web3: Web3 = new Web3(
-    NETWORK === 'local' ? 'ws://localhost:8545' : `wss://${NETWORK}.infura.io/ws/v3/${INFURA_API_KEY}`,
+    NETWORK === 'localhost' ? 'ws://localhost:8545' : `wss://${NETWORK}.infura.io/ws/v3/${INFURA_API_KEY}`,
   );
 
+  // validate environment variables
   if (!web3.utils.isAddress(CONTRACT_ADDRESS)) {
     throw new ValidationError(`Invalid contract address: ${CONTRACT_ADDRESS}`);
   }
@@ -35,15 +34,18 @@ async function main() {
     throw new ValidationError(`Invalid private key: ${PRIVATE_KEY}`);
   }
 
+  // Read artifact to get ABI
   const echoContractArtifact = await hre.artifacts.readArtifact('EchoContract');
 
   const contractInteractor = new EchoContractInteractor(web3, echoContractArtifact.abi, CONTRACT_ADDRESS, PRIVATE_KEY);
 
+  // Define callbacks
   const onDataCallback = (event: unknown) => {
     logger.info(`Event received:`, { event });
 
     contractInteractor.stopListeningToContractEvent();
 
+    // Exit the application
     logger.info('Exit');
     process.exit();
   };
@@ -52,6 +54,7 @@ async function main() {
     logger.error('Error received:', { error });
   };
 
+  // Start interacting with the contract
   logger.info('Listening to contract event...');
   contractInteractor.listenToContractEvent(onDataCallback, onErrorCallback);
   logger.info('Success');
@@ -62,7 +65,7 @@ async function main() {
 
   logger.info('Sending contract transaction...');
   await contractInteractor.emitEvent();
-  logger.info('Success');
+  logger.info('Waiting for the event...');
 }
 
 process.on('uncaughtException', (error) => {
@@ -71,6 +74,7 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
+// Run the application
 (async () => {
   try {
     await main();
