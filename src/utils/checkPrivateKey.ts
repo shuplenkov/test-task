@@ -1,5 +1,8 @@
 import { isValidPrivate } from 'ethereumjs-util';
 
+/**
+ * Check if a private key is valid
+ */
 export function checkPrivateKey(privateKey: string): boolean {
   try {
     if (privateKey.startsWith('0x')) {

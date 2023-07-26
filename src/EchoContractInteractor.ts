@@ -22,7 +22,9 @@ export class EchoContractInteractor {
     this.account = this.web3.eth.accounts.wallet[0].address;
   }
 
-  // Call a function on the contract and return the result
+  /**
+   * Call a function on the contract and return the result
+   */
   async getCurrentBlockNumber(): Promise<number> {
     try {
       const result: string = await this.contract.methods.getCurrentBlockNumber().call({ from: this.account });
@@ -35,7 +37,9 @@ export class EchoContractInteractor {
     }
   }
 
-  // Perform a transaction on the contract
+  /**
+   * Perform a transaction on the contract
+   */
   async emitEvent(): Promise<TransactionReceipt> {
     try {
       const transaction = this.contract.methods.emitEvent().encodeABI();
@@ -60,7 +64,9 @@ export class EchoContractInteractor {
     }
   }
 
-  // Listen to EmitRequested event on the contract
+  /**
+   * Listen to EmitRequested event on the contract
+   */
   listenToContractEvent(onDataCallback: DataCallback, onErrorCallback: ErrorCallback): void {
     try {
       this.eventSubscription = this.contract.events.EmitRequested();
@@ -73,7 +79,9 @@ export class EchoContractInteractor {
     }
   }
 
-  // Stop listening to the event
+  /**
+   * Stop listening to the event
+   */
   async stopListeningToContractEvent(): Promise<void> {
     if (this.eventSubscription) {
       try {

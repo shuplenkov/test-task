@@ -110,5 +110,5 @@ npm run test:contract
 4. To run all tests:
    Run the local node as described above and then run the tests:
 ```bash
-npm run test
+npm test
 ```
