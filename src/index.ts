@@ -1,10 +1,11 @@
 import hre from 'hardhat';
-import Web3 from 'web3';
 import dotenv from 'dotenv';
+import Web3 from 'web3';
 import { EchoContractInteractor } from './EchoContractInteractor';
 import ValidationError from './errors/ValidationError';
 import { logger } from './log/logger';
 import { checkPrivateKey } from './utils/checkPrivateKey';
+import web3Factory from './web3/web3Factory';
 
 dotenv.config();
 
@@ -21,9 +22,15 @@ if (!INFURA_API_KEY || !CONTRACT_ADDRESS || !NETWORK || !PRIVATE_KEY) {
 async function main() {
   logger.info('Starting...');
 
-  const web3: Web3 = new Web3(
-    NETWORK === 'localhost' ? 'ws://localhost:8545' : `wss://${NETWORK}.infura.io/ws/v3/${INFURA_API_KEY}`,
-  );
+  const url: string =
+    NETWORK === 'localhost' ? 'ws://localhost:8545' : `wss://${NETWORK}.infura.io/ws/v3/${INFURA_API_KEY}`;
+
+  // Create a Web3 instance
+  const web3ErrorHandler = (error: unknown) => {
+    logger.error('Web3 error received:', { error });
+  };
+
+  const web3: Web3 = web3Factory(url, web3ErrorHandler);
 
   // validate environment variables
   if (!web3.utils.isAddress(CONTRACT_ADDRESS)) {

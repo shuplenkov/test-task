@@ -71,7 +71,7 @@ To run the application just run the following command:
 npm start
 ```
 
-If you are using the local node, you need to run it first:
+If you are using the local network (`localhost`), you need to run local node first:
 
 ```bash
 npm run node
